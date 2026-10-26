@@ -1,17 +1,9 @@
 name: Envoi vers OVH (SFTP)
-# Un envoi vers /test à chaque modification poussée sur main.
-# L'envoi vers le site en ligne (racine) ne se fait qu'à la main : onglet Actions > Envoi vers OVH > Run workflow > cible "prod".
+# Chaque modification poussée sur main est envoyée directement sur le site en ligne (aucun fichier distant n'est supprimé).
 on:
   push:
     branches: [main]
   workflow_dispatch:
-    inputs:
-      cible:
-        description: "test (dossier /test) ou prod (site en ligne)"
-        required: true
-        default: test
-        type: choice
-        options: [test, prod]
 concurrency: deploy
 jobs:
   envoi:
@@ -23,7 +15,6 @@ jobs:
       - name: Préparer les fichiers
         run: |
           mkdir -p _out && rsync -a --exclude='.git' --exclude='.github' --exclude='_out' --exclude='README.md' --exclude='htaccess-a-renommer.txt' ./ _out/
-          if [ "${{ github.event.inputs.cible }}" = "prod" ] && [ -f htaccess-a-renommer.txt ]; then cp htaccess-a-renommer.txt _out/.htaccess; fi
       - name: Envoyer par SFTP
         env:
           H: ${{ secrets.SFTP_HOST }}
@@ -32,7 +23,6 @@ jobs:
           W: ${{ secrets.SFTP_PASSWORD }}
           DIR: ${{ secrets.SFTP_DIR }}
         run: |
-          CIBLE="${{ github.event.inputs.cible }}"; [ -z "$CIBLE" ] && CIBLE=test
-          if [ "$CIBLE" = "prod" ]; then DEST="${DIR:-www}"; else DEST="${DIR:-www}/test"; fi
+          DEST="${DIR:-www}"
           echo "Envoi vers : $DEST"
           lftp -u "$U","$W" -p "${P:-22}" "sftp://$H" -e "set sftp:auto-confirm yes; set net:max-retries 2; mirror -R --only-newer --parallel=3 --verbose _out '$DEST'; bye"
