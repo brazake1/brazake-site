@@ -1,0 +1,25 @@
+User-agent: *
+Allow: /
+Disallow: /donnees/
+Disallow: /envoi.php
+Disallow: /recap.php
+
+# Robots des assistants IA : bienvenue, le site est fait pour être cité.
+User-agent: GPTBot
+Allow: /
+User-agent: OAI-SearchBot
+Allow: /
+User-agent: ChatGPT-User
+Allow: /
+User-agent: ClaudeBot
+Allow: /
+User-agent: Claude-SearchBot
+Allow: /
+User-agent: PerplexityBot
+Allow: /
+User-agent: Google-Extended
+Allow: /
+User-agent: Applebot-Extended
+Allow: /
+
+Sitemap: https://brazake.fr/sitemap.xml

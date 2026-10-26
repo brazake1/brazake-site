@@ -1,0 +1,117 @@
+# ═══════════════════════════════════════════════════════════
+#  BRAZAKE — configuration du serveur (version du 25 octobre 2026)
+#  ---------------------------------------------------------
+#  CE FICHIER DOIT ÊTRE RENOMMÉ EN  .htaccess  (avec le point
+#  au début, et sans extension) une fois déposé dans www.
+#  Il REMPLACE l'ancien .htaccess : garde une copie de l'ancien
+#  au cas où.
+#  ═══════════════════════════════════════════════════════════
+
+RewriteEngine On
+
+# ── 1. Tout le monde passe en HTTPS ────────────────────────
+# Les trois conditions doivent être vraies EN MÊME TEMPS pour rediriger : on ne redirige que si la visite
+# est sûrement en http (port 80, pas de HTTPS, pas d'en-tête « https » de l'hébergeur). Cela évite toute boucle
+# de redirection, même si l'hébergeur ne renseigne pas l'un des trois signaux. La condition « port 80 »
+# est celle de la documentation OVHcloud.
+# Si le navigateur affiche « Trop de redirections » : supprime ces quatre lignes (RewriteCond x3 + RewriteRule).
+RewriteCond %{HTTPS} !=on
+RewriteCond %{HTTP:X-Forwarded-Proto} !https
+RewriteCond %{SERVER_PORT} ^80$
+RewriteRule ^(.*)$ https://brazake.fr/$1 [R=301,L]
+
+# ── 2. Une seule adresse : sans le www ─────────────────────
+RewriteCond %{HTTP_HOST} ^www\.brazake\.fr$ [NC]
+RewriteRule ^(.*)$ https://brazake.fr/$1 [R=301,L]
+
+# ── 3. Nettoyer les anciens liens en .html ─────────────────
+# Redirige une bonne fois pour toutes vers l'adresse propre,
+# pour ne jamais avoir deux URL différentes pour une même page.
+# Les adresses d'arrivée sont complètes (https://brazake.fr/...) : le visiteur ne passe jamais par une
+# étape intermédiaire en http.
+RewriteCond %{THE_REQUEST} \s/+index\.html[\s?] [NC]
+RewriteRule ^index\.html$ https://brazake.fr/ [R=301,L]
+
+# /dossier/index.html devient /dossier/
+RewriteCond %{THE_REQUEST} \s/+(.*)/index\.html[\s?] [NC]
+RewriteRule ^(.*)/index\.html$ https://brazake.fr/$1/ [R=301,L]
+
+RewriteCond %{THE_REQUEST} \s/+([^.\s]+)\.html[\s?] [NC]
+RewriteRule ^([^.]+)\.html$ https://brazake.fr/$1 [R=301,L]
+
+# « /guides » sans la barre finale : on la rajoute directement
+RewriteRule ^guides$ https://brazake.fr/guides/ [R=301,L]
+
+# ── 4. Adresses sans le .html, servies en interne ──────────
+# Permet de dicter « brazake.fr slash professionnels »
+# au téléphone plutôt que « ... point h-t-m-l ».
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteCond %{REQUEST_FILENAME}.html -f
+RewriteRule ^(.*)$ $1.html [L]
+
+# ── 5. Page d'erreur ────────────────────────────────────────
+ErrorDocument 404 /404.html
+
+# ── 6. Interdire la lecture des dossiers ───────────────────
+Options -Indexes
+
+# ── 7. Types de fichiers (polices, images WebP, sous-titres) ──
+AddDefaultCharset UTF-8
+<IfModule mod_mime.c>
+  AddType font/woff2 .woff2
+  AddType image/webp .webp
+  AddType text/vtt .vtt
+  AddType application/manifest+json .webmanifest
+</IfModule>
+
+# ── 8. Vitesse : compression ───────────────────────────────
+<IfModule mod_deflate.c>
+  AddOutputFilterByType DEFLATE text/html text/css text/plain text/xml text/vtt
+  AddOutputFilterByType DEFLATE application/javascript text/javascript application/json application/ld+json application/xml
+  AddOutputFilterByType DEFLATE image/svg+xml application/manifest+json image/x-icon
+</IfModule>
+
+# ── 9. Vitesse : cache ─────────────────────────────────────
+# Les fichiers styles.css, menu.js, calc.js et les polices sont appelés avec un numéro de version
+# (« ?v=… ») que le site change tout seul quand le fichier change : on peut donc les garder un an.
+# Les images restent un mois, pour qu'une photo remplacée apparaisse vite.
+<IfModule mod_expires.c>
+  ExpiresActive On
+  ExpiresByType text/html "access plus 0 seconds"
+  ExpiresByType text/css "access plus 1 year"
+  ExpiresByType application/javascript "access plus 1 year"
+  ExpiresByType text/javascript "access plus 1 year"
+  ExpiresByType font/woff2 "access plus 1 year"
+  ExpiresByType image/jpeg "access plus 1 month"
+  ExpiresByType image/webp "access plus 1 month"
+  ExpiresByType image/png "access plus 1 month"
+  ExpiresByType image/svg+xml "access plus 1 month"
+  ExpiresByType image/x-icon "access plus 1 month"
+  ExpiresByType video/mp4 "access plus 1 month"
+  ExpiresByType text/vtt "access plus 1 month"
+  ExpiresByType application/manifest+json "access plus 1 week"
+</IfModule>
+
+# data.js (avis, chantiers) et site.js sont modifiés à la main et appelés SANS numéro de version :
+# le navigateur doit vérifier à chaque visite s'ils ont changé (réponse très légère si rien n'a bougé).
+<FilesMatch "^(data|site)\.js$">
+  <IfModule mod_expires.c>
+    ExpiresActive Off
+  </IfModule>
+  <IfModule mod_headers.c>
+    Header set Cache-Control "no-cache"
+  </IfModule>
+</FilesMatch>
+
+# ── 10. Sécurité de base ───────────────────────────────────
+<IfModule mod_headers.c>
+  Header always set X-Content-Type-Options "nosniff"
+  Header always set Referrer-Policy "strict-origin-when-cross-origin"
+  # /embed/ peut être affiché dans l'iframe d'un site partenaire (calculateur).
+  # Si le site affiche une erreur 500 après dépôt, supprime les deux lignes « <If ...> » et « </If> »
+  # ci-dessous et garde la ligne « Header always set X-Frame-Options » : seule la version intégrable sera alors bloquée.
+  <If "%{REQUEST_URI} !~ m#^/embed/#">
+    Header always set X-Frame-Options "SAMEORIGIN"
+  </If>
+</IfModule>

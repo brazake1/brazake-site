@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Calculateur de crédit d'impôt, version à intégrer · Brazake</title>
+<meta name="robots" content="noindex,follow">
+<link rel="canonical" href="https://brazake.fr/calculateur-credit-impot">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="preload" href="/fonts/archivo.woff2?v=9eac2416" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="/styles.css?v=2b915d19">
+<script src="/calc.js?v=8f6606cf" defer></script>
+</head>
+<body class="embed-body">
+<main class="embed-wrap">
+<h1 class="sr-only">Calculateur de crédit d'impôt : votre reste à payer</h1>
+<div class="ccalc" data-calc>
+  <div class="calc-form">
+    <div class="calc-bloc">
+      <label for="c-montant">Montant facturé pour un passage</label>
+      <div class="calc-eur"><input id="c-montant" type="number" inputmode="decimal" min="0" step="5" value="70"><span>€</span></div>
+      <div class="calc-presets" role="group" aria-label="Montants courants">
+        <button type="button" data-preset="70" aria-pressed="true">70 €<small>prestation type</small></button>
+        <button type="button" data-preset="140" aria-pressed="false">140 €<small>vitres de la maison</small></button>
+        <button type="button" data-preset="210" aria-pressed="false">210 €<small>maison + véranda</small></button>
+      </div>
+    </div>
+    <div class="calc-bloc">
+      <div class="calc-lab"><label for="c-passages">Passages par an</label><output id="c-passages-v" for="c-passages">2 passages</output></div>
+      <input id="c-passages" type="range" min="1" max="12" step="1" value="2">
+      <div class="calc-grad" aria-hidden="true"><span>1</span><span>12</span></div>
+    </div>
+    <details class="calc-plus">
+      <summary>Affiner : plafond du foyer et autres dépenses</summary>
+      <div class="calc-grid">
+        <div><label for="c-enfants">Enfants à charge</label><input id="c-enfants" type="number" inputmode="numeric" min="0" max="10" step="1" value="0"></div>
+        <div><label for="c-seniors">Personnes de plus de 65 ans dans le foyer</label><input id="c-seniors" type="number" inputmode="numeric" min="0" max="10" step="1" value="0"></div>
+      </div>
+      <label class="calc-case"><input id="c-invalide" type="checkbox"><span>Un membre du foyer a une carte mobilité inclusion « invalidité » <small>(plafond de 20 000 €)</small></span></label>
+      <label for="c-autres">Autres dépenses de services à la personne dans l'année <small>(ménage, jardinage, garde…, restant à votre charge)</small></label>
+      <div class="calc-eur"><input id="c-autres" type="number" inputmode="decimal" min="0" step="50" value="0"><span>€</span></div>
+      <p class="calc-note">Enfants en résidence alternée : majoration de 750 € chacun au lieu de 1 500 €. Deux enfants en alternée comptent donc comme un enfant à charge. Quelles prestations entrent dans ce total ? Voir <a href="/guides/services-a-la-personne-menage-eligibles" target="_blank" rel="noopener">le guide des prestations éligibles</a>.</p>
+    </details>
+  </div>
+  <div class="calc-res" aria-live="polite" aria-atomic="false">
+    <p class="calc-vide" data-r="vide" hidden>Entrez le montant d'un passage pour voir le résultat.</p>
+    <div data-r="resultats">
+      <p class="calc-k">Vous payez au final</p>
+      <p class="calc-grand"><b data-r="reste">35 €</b><span>au lieu de <s data-r="facture">70 €</s></span></p>
+      <p class="calc-phrase" data-r="phrase"></p>
+      <div class="calc-cartes">
+        <div class="calc-carte calc-oui">
+          <span class="calc-k">Avec l'avance immédiate</span>
+          <b data-r="avance-paye">35 €</b>
+          <p>réglés sur l'année, soit <span data-r="avance-par"></span>. L'État règle directement <span data-r="credit"></span>.</p>
+        </div>
+        <div class="calc-carte">
+          <span class="calc-k">Crédit d'impôt classique</span>
+          <b data-r="classique-paye">70 €</b>
+          <p>avancés, puis <span data-r="classique-recup"></span> remboursés après votre déclaration, en général l'été suivant.</p>
+        </div>
+      </div>
+      <div class="calc-plafond">
+        <p><span>Plafond annuel du foyer : <b data-r="plafond"></b></span><span><b data-r="utilise"></b> utilisés (<b data-r="part"></b>)</span></p>
+        <div class="calc-piste" role="progressbar" aria-label="Part du plafond annuel utilisée" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><i data-barre></i></div>
+        <p class="calc-alerte" data-r="alerte" hidden><span data-r="alerte-txt"></span></p>
+      </div>
+      <a class="pill" href="https://brazake.fr/contact#devis" target="_blank" rel="noopener">Demander un devis gratuit</a>
+      <p class="calc-note">Estimation indicative. Seuls votre avis d'imposition et le devis signé font foi.</p>
+    </div>
+  </div>
+</div>
+<p class="embed-credit">Calculateur fourni par <a href="https://brazake.fr/calculateur-credit-impot" target="_blank" rel="noopener">Brazake, nettoyage de vitres à Agen</a></p>
+</main>
+</body>
+</html>
